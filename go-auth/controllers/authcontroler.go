@@ -7,11 +7,12 @@ import (
 
 func Index(w http.ResponseWriter, r *http.Request) {
 
-	temp, err := template.ParseFiles("views/Index.html")
-
-	if err != nil {
-		panic(err)
-	}
+	temp, _ := template.ParseFiles("views/Index.html")
 	temp.Execute(w, nil)
 
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	temp, _ := template.ParseFiles("views/Login.html")
+	temp.Execute(w, nil)
 }
