@@ -1,10 +1,14 @@
 package controllers
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 )
+
+type UserInput struct {
+	Username string
+	Password string
+}
 
 func Index(w http.ResponseWriter, r *http.Request) {
 
@@ -20,7 +24,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		temp.Execute(w, nil)
 	} else if r.Method == http.MethodPost {
 		// proses login
-		fmt.Println("Proses Login")
+		r.ParseForm()
+		UserInput := &UserInput{
+			Username: r.Form.Get("username"),
+			Password: r.Form.Get("password"),
+		}
 	}
 
 }
