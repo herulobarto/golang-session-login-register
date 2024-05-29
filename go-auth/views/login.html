@@ -18,16 +18,22 @@
   <div class="container mt-5">
     <form action="/login" method="post">
       <h4>SIGN IN</h4>
-      <h3>Welcome, Nama User</h3>
+      <p>Masukkan username dan password anda</p>
       <br/>
+
+      {{ if .error }}
+        <div class="alert alert-danger">
+          {{ .error }}
+        </div>
+      {{ end }}
 
       <div class="form-group">
         <label>Username</label>
-        <input type="text" name="username" class="form-control">
+        <input type="text" name="username" class="form-control" required>
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" name="password" class="form-control">
+        <input type="password" name="password" class="form-control" required>
       </div>
 
       <button type="submit" class="btn btn-success btn-block">SIGN IN</button>

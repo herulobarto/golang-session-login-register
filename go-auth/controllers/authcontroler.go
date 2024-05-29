@@ -7,6 +7,7 @@ import (
 
 	"github.com/herulobarto/go-auth/entities"
 	"github.com/herulobarto/go-auth/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserInput struct {
@@ -14,7 +15,7 @@ type UserInput struct {
 	Password string
 }
 
-var UserModel = models.NewUserModel()
+var userModel = models.NewUserModel()
 
 func Index(w http.ResponseWriter, r *http.Request) {
 
@@ -37,18 +38,30 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var user entities.User
-		userModel.where(&user, "username", UserInput.Username)
+		userModel.Where(&user, "username", UserInput.Username)
 
 		var message error
 		if user.Username == "" {
 			// tidak ditemukan di database
-			message = errors.New("Username atau Password salah!")
+			message = errors.New("username atau password salah")
 		} else {
 			// pengecekan password
+			errPassword := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(UserInput.Password))
+			if errPassword != nil {
+				message = errors.New("username atau password salah")
+			}
+		}
+
+		if message != nil {
+
+			data := map[string]interface{}{
+				"error": message,
+			}
+
+			temp, _ := template.ParseFiles("views/Login.html")
+			temp.Execute(w, data)
 		}
 
 	}
 
 }
-
-// lalu ketik pada terminal go get golang.org.x/crypto/bcrypt

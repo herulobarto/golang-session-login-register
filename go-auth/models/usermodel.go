@@ -2,7 +2,9 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 
+	_ "github.com/go-sql-driver/mysql" // Import the MySQL driver
 	"github.com/herulobarto/go-auth/config"
 	"github.com/herulobarto/go-auth/entities"
 )
@@ -13,7 +15,6 @@ type UserModel struct {
 
 func NewUserModel() *UserModel {
 	conn, err := config.DBConn()
-
 	if err != nil {
 		panic(err)
 	}
@@ -23,20 +24,17 @@ func NewUserModel() *UserModel {
 	}
 }
 
-func (u UserModel) where(user *entities.User, fieldName, fieldValue string) error {
+func (u UserModel) Where(user *entities.User, fieldName, fieldValue string) error {
+	query := "SELECT id, nama_lengkap, email, username, password FROM users WHERE " + fieldName + " = ? LIMIT 1"
+	row := u.db.QueryRow(query, fieldValue)
 
-	row, err := u.db.Query("select id, nama_lengkap, email, username, password* from users where "+fieldName+"=? limit 1", fieldValue)
-
+	err := row.Scan(&user.Id, &user.NamaLengkap, &user.Email, &user.Username, &user.Password)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("no user found")
+		}
 		return err
 	}
 
-	defer row.Close()
-
-	for row.Next() {
-		row.Scan(&user.Id, &user.NamaLengkap, &user.Email, &user.Username, &user.Password)
-	}
-
 	return nil
-
 }
