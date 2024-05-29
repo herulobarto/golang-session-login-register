@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"github.com/herulobarto/go-auth/config"
 	"github.com/herulobarto/go-auth/entities"
 	"github.com/herulobarto/go-auth/models"
 	"golang.org/x/crypto/bcrypt"
@@ -18,6 +19,20 @@ type UserInput struct {
 var userModel = models.NewUserModel()
 
 func Index(w http.ResponseWriter, r *http.Request) {
+
+	session, _ := config.Store.Get(r, config.SESSION_ID)
+
+	if len(session.Values) == 0 {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	} else {
+
+		if session.Values["loggedIn"] != true {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+		} else {
+			temp, _ := template.ParseFiles("views/index.html")
+			temp.Execute(w, nil)
+		}
+	}
 
 	temp, _ := template.ParseFiles("views/Index.html")
 	temp.Execute(w, nil)
@@ -60,6 +75,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 			temp, _ := template.ParseFiles("views/Login.html")
 			temp.Execute(w, data)
+		} else {
+			// set session
+
+			session, _ := config.Store.Get(r, config.SESSION_ID)
+
+			session.Values["loggedIn"] = true
+			session.Values["email"] = user.Email
+			session.Values["username"] = user.Username
+			session.Values["nama_lengkap"] = user.NamaLengkap
+
+			session.Save(r, w)
+
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 		}
 
 	}
