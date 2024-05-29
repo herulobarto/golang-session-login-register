@@ -163,7 +163,26 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			temp, _ := template.ParseFiles("views/register.html")
 			temp.Execute(w, data)
 		} else {
+			// hash password menggunakan bcrypt
+			hashPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+			user.Password = string(hashPassword)
 
+			// insert ke database
+			_, err := userModel.Create(user)
+
+			var message string
+			if err != nil {
+				message = "Proses Registrasi Gagal: " + message
+			} else {
+				message = "Registrasi Berhasil, Silahkan Login"
+			}
+
+			data := map[string]interface{}{
+				"pesan": message,
+			}
+
+			temp, _ := template.ParseFiles("views/register.html")
+			temp.Execute(w, data)
 		}
 	}
 
