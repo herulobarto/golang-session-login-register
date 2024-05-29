@@ -19,24 +19,24 @@ type UserInput struct {
 var userModel = models.NewUserModel()
 
 func Index(w http.ResponseWriter, r *http.Request) {
-
 	session, _ := config.Store.Get(r, config.SESSION_ID)
 
 	if len(session.Values) == 0 {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
-	} else {
-
-		if session.Values["loggedIn"] != true {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-		} else {
-			temp, _ := template.ParseFiles("views/index.html")
-			temp.Execute(w, nil)
-		}
+		return
 	}
 
-	temp, _ := template.ParseFiles("views/Index.html")
-	temp.Execute(w, nil)
+	if session.Values["loggedIn"] != true {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
 
+	data := map[string]interface{}{
+		"nama_lengkap": session.Values["nama_lengkap"],
+	}
+
+	temp, _ := template.ParseFiles("views/index.html")
+	temp.Execute(w, data)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -92,4 +92,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	session, _ := config.Store.Get(r, config.SESSION_ID)
+
+	// delete SESSION
+	session.Options.MaxAge = -1
+	session.Save(r, w)
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
