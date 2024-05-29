@@ -95,6 +95,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
+
 	session, _ := config.Store.Get(r, config.SESSION_ID)
 
 	// delete SESSION
@@ -102,4 +103,68 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method == http.MethodGet {
+
+		temp, _ := template.ParseFiles("views/register.html")
+		temp.Execute(w, nil)
+
+	} else if r.Method == http.MethodPost {
+		// melakukan proses registrasi
+
+		// mengambil inputan form
+		r.ParseForm()
+
+		user := entities.User{
+			NamaLengkap: r.Form.Get("nama_lengkap"),
+			Email:       r.Form.Get("email"),
+			Username:    r.Form.Get("username"),
+			Password:    r.Form.Get("password"),
+			Cpassword:   r.Form.Get("cpassword"),
+		}
+
+		errorMessages := make(map[string]interface{})
+
+		if user.NamaLengkap == "" {
+			errorMessages["NamaLengkap"] = "Nama Lengkap harus diisi"
+
+		}
+		if user.Email == "" {
+			errorMessages["Email"] = "Email harus diisi"
+
+		}
+		if user.Username == "" {
+			errorMessages["Username"] = "Username harus diisi"
+
+		}
+		if user.Password == "" {
+			errorMessages["Password"] = "Password harus diisi"
+
+		}
+		if user.Cpassword == "" {
+			errorMessages["Cpassword"] = "Konfirmasi Password harus diisi"
+
+		} else {
+			if user.Cpassword != user.Password {
+				errorMessages["Cpassword"] = "Konfirmasi password tidak cocok"
+			}
+		}
+
+		if len(errorMessages) > 0 {
+			//  validasi form gagal
+
+			data := map[string]interface{}{
+				"validation": errorMessages,
+			}
+
+			temp, _ := template.ParseFiles("views/register.html")
+			temp.Execute(w, data)
+		} else {
+
+		}
+	}
+
 }
