@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
@@ -209,11 +210,29 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			return labelName
 		})
 
-		// memakai pesan bahasa inggris
+		// memakai pesan bahasa indonesia
 		validate.RegisterTranslation("required", trans, func(ut ut.Translator) error {
 			return ut.Add("required", "{0} tidak boleh kosong", true)
 		}, func(ut ut.Translator, fe validator.FieldError) string {
 			t, _ := ut.T("required", fe.Field())
+			return t
+		})
+
+		validate.RegisterValidation("isunique", func(fl validator.FieldLevel) bool {
+			params := fl.Param()
+			split_params := strings.Split(params, "-")
+
+			tableName := split_params[0]
+			fieldName := split_params[1]
+			fieldValue := fl.Field().String()
+
+			return checkIsUnique(tableName, fieldName, fieldValue)
+		})
+
+		validate.RegisterTranslation("isunique", trans, func(ut ut.Translator) error {
+			return ut.Add("isunique", "{0} sudah digunakan", true)
+		}, func(ut ut.Translator, fe validator.FieldError) string {
+			t, _ := ut.T("isunique", fe.Field())
 			return t
 		})
 
@@ -239,4 +258,27 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+}
+
+func checkIsUnique(tableName, fieldName, fieldValue string) bool {
+
+	conn, err := config.DBConn()
+	if err != nil {
+		panic(err)
+	}
+
+	query := fmt.Sprintf("SELECT %s FROM %s WHERE %s = ?", fieldName, tableName, fieldName)
+	row, err2 := conn.Query(query, fieldValue)
+	if err2 != nil {
+		panic(err)
+	}
+	defer row.Close()
+
+	var result string
+	for row.Next() {
+		row.Scan(&result)
+	}
+
+	// jika ketemu email yang sama akan dibandingkan dengan filedvalue yang diisi
+	return result != fieldValue
 }
