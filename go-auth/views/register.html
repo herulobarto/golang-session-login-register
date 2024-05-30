@@ -23,6 +23,12 @@
       <p>Silahkan isi formulir dibawah untuk mendaftar</p>
       <br/>
 
+      {{ if .pesan }}
+        <div class="alert alert-success">
+          {{ .pesan }}
+        </div>
+      {{ end }}
+
       <div class="form-group">
         <label for="">Nama Lengkap</label>
         <input type="text" name="nama_lengkap" class="form-control {{ if .validation.NamaLengkap }} is-invalid {{ end }}">
