@@ -31,7 +31,7 @@
 
       <div class="form-group">
         <label for="">Nama Lengkap</label>
-        <input type="text" name="nama_lengkap" class="form-control {{ if .validation.NamaLengkap }} is-invalid {{ end }}">
+        <input type="text" name="nama_lengkap" value="{{ .user.NamaLengkap }}" class="form-control {{ if .validation.NamaLengkap }} is-invalid {{ end }}">
         <div class="invalid-feedback">
           {{ .validation.NamaLengkap }}
         </div>
@@ -39,7 +39,7 @@
 
       <div class="form-group">
         <label for="">E-mail</label>
-        <input type="text" name="email" class="form-control {{ if .validation.Email }} is-invalid {{ end }}">
+        <input type="text" name="email" value="{{ .user.Email }}" class="form-control {{ if .validation.Email }} is-invalid {{ end }}">
         <div class="invalid-feedback">
           {{ .validation.Email }}
         </div>
@@ -47,7 +47,7 @@
 
       <div class="form-group">
         <label for="">Username</label>
-        <input type="text" name="username" class="form-control {{ if .validation.Username }} is-invalid {{ end }}">
+        <input type="text" name="username" value="{{ .user.Username }} "class="form-control {{ if .validation.Username }} is-invalid {{ end }}">
         <div class="invalid-feedback">
           {{ .validation.Username }}
         </div>
@@ -55,7 +55,7 @@
 
       <div class="form-group">
         <label for="">Password</label>
-        <input type="text" name="password" class="form-control {{ if .validation.Password }} is-invalid {{ end }}">
+        <input type="text" name="password" value="{{ .user.Password }}" class="form-control {{ if .validation.Password }} is-invalid {{ end }}">
         <div class="invalid-feedback">
           {{ .validation.Password }}
         </div>
@@ -63,7 +63,7 @@
 
       <div class="form-group">
         <label for="">Konfirmasi Password</label>
-        <input type="text" name="cpassword" class="form-control {{ if .validation.Cpassword }} is-invalid {{ end }}">
+        <input type="text" name="cpassword" value="{{ .user.Cpassword }}" class="form-control {{ if .validation.Cpassword }} is-invalid {{ end }}">
         <div class="invalid-feedback">
           {{ .validation.Cpassword }}
         </div>

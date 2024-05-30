@@ -2,13 +2,20 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"net/http"
+	"reflect"
 
+	"github.com/go-playground/locales/en"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
 	"github.com/herulobarto/go-auth/config"
 	"github.com/herulobarto/go-auth/entities"
 	"github.com/herulobarto/go-auth/models"
 	"golang.org/x/crypto/bcrypt"
+
+	en_translations "github.com/go-playground/validator/v10/translations/en"
 )
 
 type UserInput struct {
@@ -126,64 +133,110 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			Cpassword:   r.Form.Get("cpassword"),
 		}
 
+		// errorMessages := make(map[string]interface{})
+
+		// if user.NamaLengkap == "" {
+		// 	errorMessages["NamaLengkap"] = "Nama Lengkap harus diisi"
+
+		// }
+		// if user.Email == "" {
+		// 	errorMessages["Email"] = "Email harus diisi"
+
+		// }
+		// if user.Username == "" {
+		// 	errorMessages["Username"] = "Username harus diisi"
+
+		// }
+		// if user.Password == "" {
+		// 	errorMessages["Password"] = "Password harus diisi"
+
+		// }
+		// if user.Cpassword == "" {
+		// 	errorMessages["Cpassword"] = "Konfirmasi Password harus diisi"
+
+		// } else {
+		// 	if user.Cpassword != user.Password {
+		// 		errorMessages["Cpassword"] = "Konfirmasi password tidak cocok"
+		// 	}
+		// }
+
+		// if len(errorMessages) > 0 {
+		// 	//  validasi form gagal
+
+		// 	data := map[string]interface{}{
+		// 		"validation": errorMessages,
+		// 	}
+
+		// 	temp, _ := template.ParseFiles("views/register.html")
+		// 	temp.Execute(w, data)
+		// } else {
+		// 	// hash password menggunakan bcrypt
+		// 	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		// 	user.Password = string(hashPassword)
+
+		// 	// insert ke database
+		// 	_, err := userModel.Create(user)
+
+		// 	var message string
+		// 	if err != nil {
+		// 		message = "Proses Registrasi Gagal: " + message
+		// 	} else {
+		// 		message = "Registrasi Berhasil, Silahkan Login"
+		// 	}
+
+		// 	data := map[string]interface{}{
+		// 		"pesan": message,
+		// 	}
+
+		// 	temp, _ := template.ParseFiles("views/register.html")
+		// 	temp.Execute(w, data)
+		// }
+
+		// memanggil paket translator
+		translator := en.New()
+		uni := ut.New(translator, translator)
+
+		trans, _ := uni.GetTranslator("en")
+
+		validate := validator.New()
+
+		// register default translation (en)
+		en_translations.RegisterDefaultTranslations(validate, trans)
+
+		// mengubah label default
+		validate.RegisterTagNameFunc(func(field reflect.StructField) string {
+			labelName := field.Tag.Get("label")
+			return labelName
+		})
+
+		// memakai pesan bahasa inggris
+		validate.RegisterTranslation("required", trans, func(ut ut.Translator) error {
+			return ut.Add("required", "{0} tidak boleh kosong", true)
+		}, func(ut ut.Translator, fe validator.FieldError) string {
+			t, _ := ut.T("required", fe.Field())
+			return t
+		})
+
+		// melakukan proses validasi
+		vErrors := validate.Struct(user)
+
 		errorMessages := make(map[string]interface{})
+		if vErrors != nil {
+			fmt.Println(vErrors)
 
-		if user.NamaLengkap == "" {
-			errorMessages["NamaLengkap"] = "Nama Lengkap harus diisi"
-
-		}
-		if user.Email == "" {
-			errorMessages["Email"] = "Email harus diisi"
-
-		}
-		if user.Username == "" {
-			errorMessages["Username"] = "Username harus diisi"
-
-		}
-		if user.Password == "" {
-			errorMessages["Password"] = "Password harus diisi"
-
-		}
-		if user.Cpassword == "" {
-			errorMessages["Cpassword"] = "Konfirmasi Password harus diisi"
-
-		} else {
-			if user.Cpassword != user.Password {
-				errorMessages["Cpassword"] = "Konfirmasi password tidak cocok"
+			for _, e := range vErrors.(validator.ValidationErrors) {
+				errorMessages[e.StructField()] = e.Translate(trans)
 			}
-		}
-
-		if len(errorMessages) > 0 {
-			//  validasi form gagal
 
 			data := map[string]interface{}{
 				"validation": errorMessages,
-			}
-
-			temp, _ := template.ParseFiles("views/register.html")
-			temp.Execute(w, data)
-		} else {
-			// hash password menggunakan bcrypt
-			hashPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-			user.Password = string(hashPassword)
-
-			// insert ke database
-			_, err := userModel.Create(user)
-
-			var message string
-			if err != nil {
-				message = "Proses Registrasi Gagal: " + message
-			} else {
-				message = "Registrasi Berhasil, Silahkan Login"
-			}
-
-			data := map[string]interface{}{
-				"pesan": message,
+				"user":       user,
 			}
 
 			temp, _ := template.ParseFiles("views/register.html")
 			temp.Execute(w, data)
 		}
+
 	}
 
 }
